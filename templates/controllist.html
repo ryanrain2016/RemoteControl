@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <table>
+        <tr>
+            <td>ID</td><td>屏幕</td><td>电脑名</td><td>mac地址</td><td>操作</td>
+        </tr>
+        {% for rdp in data %}
+        <tr>
+            <td>{{ rdp.login }}</td>
+            <td>{{ rdp.size }}</td>
+            <td>{{ rdp.pcname }}</td>
+            <td>{{ rdp.mac }}</td>
+            <td><a href="/control-jtwmydtsgx/{{ rdp.login }}">屏幕监控</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

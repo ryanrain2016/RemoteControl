@@ -1,0 +1,128 @@
+<html>
+  <head>
+    <title>RemoteControl</title>
+  </head>
+  <body>
+    <h1></h1>
+    <!-- <img id="screen" src="/host/control?id=1"> -->
+    <!-- <img id="screen" src="../static/offline.jpg"> -->
+    <!-- <div id="control" style="border: 1px solid red;"></div> -->
+    <canvas id="screen"></canvas>
+  </body>
+  <script>
+(function(){
+    const scale = 0.7;
+    let schema = window.location.protocol=='https:' ? 'wss:' : 'ws:';
+    let host =  window.location.host;
+    let ws = new WebSocket(schema+"//"+ host+"/websocket/manage?id={{ id }}");
+    ws.onopen = function(evt) {
+        ws.send(JSON.stringify({action:'start_monitor'}));
+    };
+    ws.onclose = function(evt) { 
+        screen.src='/static/offline.jpg';
+    };
+    ws.onmessage = function(evt) { 
+        let data = evt.data;
+        let posdata = data.slice(0, 4);
+        data = data.slice(4);
+        let fr = new FileReader();
+        fr.readAsBinaryString(posdata);
+        fr.onload = function(e) {
+            let res = fr.result;
+            pos = [(res[0].charCodeAt() << 8) + res[1].charCodeAt(), (res[2].charCodeAt() << 8) + res[3].charCodeAt()];
+            loadimg(data, ...pos);
+        }
+    };
+    ws.onerror = function(evt) { 
+        
+    };
+    function loadimg(data, x, y){
+        let img = new Image;
+        img.src = URL.createObjectURL(data);
+        img.onload = () => {
+            ctx.drawImage(img, x, y);
+            window.URL.revokeObjectURL(img.src);
+            img = null;
+        }
+    }
+    const screen = document.getElementById('screen');
+    const ctx = screen.getContext("2d");
+    const ajax_get = function(url, type='json'){
+        return new Promise(function(resolve, reject){
+            let xmlHttpReq = null;
+            if (window.ActiveXObject) {
+                xmlHttpReq = new ActiveXObject("Microsoft.XMLHTTP");
+            } else if (window.XMLHttpRequest) {
+                xmlHttpReq = new XMLHttpRequest();
+            }
+            xmlHttpReq.open('get', url, true);
+            xmlHttpReq.responseType=type;
+            xmlHttpReq.onreadystatechange = function(){
+                if (xmlHttpReq.readyState == 4) {  
+                    if (xmlHttpReq.status == 200){
+                        resolve(xmlHttpReq.response);
+                    }else{
+                        console.dir(xmlHttpReq);
+                    } 
+                }
+            }
+            xmlHttpReq.send();
+        });
+    }
+    ajax_get('/api/info/{{ id }}').then(function(e){
+        if (e.code == 200){
+            [screen.width, screen.height] = [e.data.size[0]*scale, e.data.size[1]*scale];
+        }
+    });
+    screen.draggable = false;
+    screen.tabIndex = 1
+    screen.onmouseenter = (e) =>{
+        screen.focus();
+    }
+    screen.onmouseleave = (e) =>{
+        screen.blur();
+    }
+    screen.onmousemove = (e) =>{
+        e = e || window.event;
+        let x = e.offsetX / scale, 
+            y = e.offsetY / scale;
+        ws.send(JSON.stringify({action:'moveTo', args:[x, y]}));
+    }
+    screen.onmousewheel = (e) =>{
+        e = e || window.event;
+        e.preventDefault();
+        let scala = e.wheelDelta / scale;
+        ws.send(JSON.stringify({action:'scroll', args:[scala]}));
+    }
+    screen.onmousedown = (e) =>{
+        e = e || window.event;
+        e.preventDefault();
+        button = ['left', 'middle', 'right'][e.which-1];
+        ws.send(JSON.stringify({action:'mouseDown', kw:{button:button}}));
+    }
+    screen.onmouseup = (e) =>{
+        e = e || window.event;
+        e.preventDefault();
+        button = ['left', 'middle', 'right'][e.which-1];
+        ws.send(JSON.stringify({action:'mouseUp', kw:{button:button}}));
+    }
+    screen.onkeydown = (e) =>{
+        e = e || window.event;
+        e.preventDefault();
+        let keyCode = e.keyCode || e.which;
+        ws.send(JSON.stringify({action:'keyDown', kw:{keyCode:keyCode}}));
+    }
+    screen.onkeyup = (e) =>{
+        e = e || window.event;
+        e.preventDefault();
+        let keyCode = e.keyCode || e.which;
+        ws.send(JSON.stringify({action:'keyUp', kw:{keyCode:keyCode}}));
+    }
+    screen.oncontextmenu = (e) =>{
+        e = e || window.event;
+        ws.send(JSON.stringify({action:'rightClick'}))
+        e.preventDefault();
+    }
+})();
+  </script>
+</html>
