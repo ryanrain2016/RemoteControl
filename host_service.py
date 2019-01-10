@@ -27,11 +27,8 @@ pyautogui.FAILSAFE = False
 pyautogui.PAUSE = 0
 
 ID = "1"
-# SERVER_WS_URL = 'ws://127.0.0.1/websocket/host'
-SERVER_WS_URL = 'ws://w.ryan-site.tk/websocket/host'
-tencent = '123.207.242.135'
-SERVER_WS_URL = 'ws://123.207.242.135/websocket/host'
-SERVER_WS_URL = 'ws://172.19.3.241:801/websocket/host'
+
+SERVER_WS_URL = 'ws://xxxxx/websocket/host'
 
 
 def setWallPaper(path=""):

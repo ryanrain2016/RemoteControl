@@ -41,12 +41,8 @@ def get_hash(s, method=hashlib.sha256):
     return method(to_bytes(s)).hexdigest()
 
 ID = get_hash(get_pc_name()+get_mac_address()+"qsefthuko")
-# SERVER_WS_URL = 'ws://127.0.0.1/websocket/host'
-SERVER_WS_URL = 'ws://w.ryan-site.tk/websocket/host'
-tencent = '123.207.242.135'
-SERVER_WS_URL = 'ws://123.207.242.135/websocket/host'
-SERVER_WS_URL = 'ws://172.19.3.241:801/websocket/host'
-SERVER_WS_URL = 'ws://172.19.3.133/websocket/host'
+
+SERVER_WS_URL = 'ws://xxxx/websocket/host'
 
 class LoginError(Exception):
     pass
